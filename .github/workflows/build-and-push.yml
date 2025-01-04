@@ -1,28 +1,31 @@
-name: Build and Push to ECR
+name: Build and Push to ECR, then Deploy to ECS
 
 on:
   push:
     branches: [ "development" ]
 
 jobs:
-  build-and-push:
+  build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
       - name: Check out code
         uses: actions/checkout@v3
 
-      - name: Configure AWS Credentials
+      # ----------------------------------------------------
+      # 1) Configure AWS Credentials for ECR in us-east-1
+      # ----------------------------------------------------
+      - name: Configure AWS Credentials (us-east-1 for ECR)
         uses: aws-actions/configure-aws-credentials@v1
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
+          aws-region: us-east-1
 
       - name: Log in to Amazon ECR
         run: |
           aws --version
-          aws ecr-public get-login-password --region ${{ secrets.AWS_REGION }} \
+          aws ecr-public get-login-password --region us-east-1 \
             | docker login --username AWS --password-stdin ${{ secrets.ECR_URI }}
 
       - name: Make gradlew executable
@@ -48,11 +51,21 @@ jobs:
           docker push ${{ secrets.REPOSITORY_URI }}:latest
           docker push ${{ secrets.REPOSITORY_URI }}:${{ env.IMAGE_TAG }}
 
+      # ----------------------------------------------------
+      # 2) Re-configure AWS Credentials for ECS in eu-west-1
+      # ----------------------------------------------------
+      - name: Configure AWS Credentials (eu-west-1 for ECS)
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-west-1
+
       - name: Fill in the new image ID in the ECS task definition
         run: |
-          sed -i "s|<IMAGE_PLACEHOLDER>|${{ secrets.ECR_URI }}:${{ env.IMAGE_TAG }}|g" task-definition.json
+          sed -i "s|<IMAGE_PLACEHOLDER>|${{ secrets.REPOSITORY_URI }}:${{ env.IMAGE_TAG }}|g" task-definition.json
 
-      - name: Deploy to Amazon ECS
+      - name: Deploy to Amazon ECS (eu-west-1)
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
         with:
           task-definition: task-definition.json
