@@ -1,0 +1,45 @@
+{
+    "family": "whatstheplan-social-td",
+    "executionRoleArn": "arn:aws:iam::039612878787:role/ecsTaskExecutionRole",
+    "networkMode": "awsvpc",
+    "containerDefinitions": [
+        {
+            "name": "whatstheplan-social",
+            "image": "<IMAGE_PLACEHOLDER>",
+            "cpu": 0,
+            "portMappings": [
+                {
+                    "name": "whatstheplan-social-8080-tcp",
+                    "containerPort": 8080,
+                    "hostPort": 8080,
+                    "protocol": "tcp",
+                    "appProtocol": "http"
+                }
+            ],
+            "essential": true,
+            "environment": [],
+            "environmentFiles": [],
+            "mountPoints": [],
+            "volumesFrom": [],
+            "ulimits": [],
+            "logConfiguration": {
+                "logDriver": "awslogs",
+                "options": {
+                    "awslogs-group": "/ecs/whatstheplan-social-td",
+                    "awslogs-region": "eu-west-1",
+                    "awslogs-stream-prefix": "ecs",
+                    "awslogs-create-group": "true",
+                    "mode": "non-blocking",
+                    "max-buffer-size": "25m"
+                },
+                "secretOptions": []
+            },
+            "systemControls": []
+        }
+    ],
+    "requiresCompatibilities": [
+        "FARGATE"
+    ],
+    "cpu": "512",
+    "memory": "1024"
+}

@@ -47,3 +47,15 @@ jobs:
           echo "Pushing Docker images..."
           docker push ${{ secrets.REPOSITORY_URI }}:latest
           docker push ${{ secrets.REPOSITORY_URI }}:${{ env.IMAGE_TAG }}
+
+      - name: Fill in the new image ID in the ECS task definition
+        run: |
+          sed -i "s|<IMAGE_PLACEHOLDER>|${{ secrets.ECR_URI }}:${{ env.IMAGE_TAG }}|g" task-definition.json
+
+      - name: Deploy to Amazon ECS
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: task-definition.json
+          service: whatstheplan-social-service
+          cluster: whatstheplan
+          wait-for-service-stability: true
