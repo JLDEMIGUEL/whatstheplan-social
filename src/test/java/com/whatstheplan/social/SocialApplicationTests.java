@@ -1,13 +1,12 @@
 package com.whatstheplan.social;
 
+import com.whatstheplan.social.testconfig.BaseIntegrationTest;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
 
-@SpringBootTest
-class SocialApplicationTests {
+class SocialApplicationTests extends BaseIntegrationTest {
 
-	@Test
-	void contextLoads() {
-	}
+    @Test
+    void contextLoads() {
+    }
 
 }
